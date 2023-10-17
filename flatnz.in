@@ -1,0 +1,95 @@
+
+############################# Initialization ##################################
+
+
+
+seed               12345
+dimension          2
+global             gridcut 0.0 comm/sort yes
+boundary           oo rs p
+
+create_box         -0.0005 0.029 0.0 0.0045 -0.5 0.5
+create_grid        295 45 1 #level 2 1*10 * * 2 2 1
+balance_grid       rcb cell
+fix                fbalance balance 1000 1.1 rcb part
+global             fnum 4.0e10
+
+#inlet p = 10Pa, kn = 0.2
+species            air.species N2
+mixture            gas_in N2 vstream 0 0 0 temp 423.15 nrho 3.424e21
+mixture            gas_in N2  frac 1.0
+
+read_surf          data.flatnz group cubesat_surf origin 0 0 0 atrans 0 -0 0 &
+                   scale 1 1 1 clip
+
+surf_collide       diffuse_423K diffuse 423.15 1
+surf_modify        cubesat_surf collide diffuse_423K
+bound_modify       yhi collide diffuse_423K
+collide            vss gas_in air.vss
+
+fix                gas_inlet emit/face gas_in xlo
+variable           t0 equal 0
+variable           time equal ${t0}+dt*step
+compute            sumKe reduce sum ke
+compute            forces surf cubesat_surf all fx fy ke erot etot
+fix                forces ave/surf all 1 100 100 c_forces[*] ave one #running
+compute            netforces reduce sum f_forces[1] f_forces[2] 
+compute            neteflux reduce max f_forces[3] f_forces[4] f_forces[5]
+compute            mfr boundary all mflux
+
+stats_style        v_time elapsed cpu np c_sumKe ncoll nscoll c_netforces[1] c_netforces[2] &
+                                                              c_neteflux[1] c_neteflux[2] c_neteflux[3] c_mfr[2][1]
+
+
+timestep           2.e-7
+stats              1000
+run                10000
+
+unfix              forces
+uncompute          forces
+uncompute          netforces
+uncompute          neteflux
+uncompute          mfr
+
+
+############################## After the simulation reaches steady state ##################################
+
+
+
+compute            forces surf cubesat_surf all fx fy ke erot etot
+fix                forces ave/surf all 1 10 10 c_forces[*] ave running
+compute            netforces reduce sum f_forces[1] f_forces[2] 
+compute            neteflux reduce max f_forces[3] f_forces[4] f_forces[5]
+compute            mfr boundary all mflux
+fix                mfr ave/time 1 10 10 c_mfr[*] mode vector file tmp.outH401
+
+stats_style        v_time elapsed cpu np c_sumKe ncoll nscoll 
+															   
+
+############# Flow Properties####################
+
+compute            mTt thermal/grid all all temp   #mixture data
+compute            mPress thermal/grid all all press
+compute            mMrho grid all all massrho
+compute            mU grid all all u
+compute            mV grid all all v
+compute            mW grid all all w
+
+fix                Ttra  ave/grid all 1 2000 2000 c_mTt[*] ave running   
+fix                Press ave/grid all 1 2000 2000 c_mPress[*] ave running
+fix                Mrho  ave/grid all 1 2000 2000 c_mMrho[*] ave running
+fix                U     ave/grid all 1 2000 2000 c_mU[*] ave running
+fix                V     ave/grid all 1 2000 2000 c_mV[*] ave running
+fix                W     ave/grid all 1 2000 2000 c_mV[*] ave running     
+
+dump               dgrid grid all 2000 prop_grid.*.dat id xc yc &
+                                   f_Ttra[*] f_Press[*] f_Mrho[*] &
+                                    f_U[*] f_V[*] f_W[*]
+
+
+stats              1000
+run                10000
+
+
+
+
