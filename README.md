@@ -33,6 +33,12 @@ There are many parameters in the input file required to generate a valid simulat
   - These lines should read:  
     ```mixture           gas_in N2 vstream 0 0 0 temp *423.15* nrho 3.424e21```  
     ```surf_collide      diffuse_423K diffuse *423.15* 1```
+4. Changing the output filename
+   It is useful to be able to save multiple output files to be processed at once as is in the UQ Jupyter notebook. To do this:
+   - Look for the line
+     ```fix               mfr ave/time 1 10 10 c_mfr[*] mode vector file tmp.outH401```
+   - This should be just after the comment line "After the simulation reaches steady state".
+   - Change the final entry in the line to your preferred file name; for example, ```tmp.outT424``` for a temperature variation.
 
 ## Performing the UQ
 The Jupyter notebook titled ```UQ - nozzle.ipynb``` should contain all explanations to perform the UQ. 
