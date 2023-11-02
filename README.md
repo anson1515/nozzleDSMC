@@ -7,6 +7,7 @@ Note: this project was done using SPARTA version 18 July 2022.
 1. Go to https://sjplimp.github.io//download.html and download SPARTA (under Other software).
 2. Extract the files, prefarably on a remote server (e.g. ```hetmathsys1.scrtp.warwick.ac.uk```) with ability to parallel process.
 3. Go to ```sparta/sparta-{Version date}/src``` and run the command ```make mpi```. This should produce the ```spa_mpi``` executable. This needs to be present inside whichever folder containing the input scripts for simulations.
+4. If this does not work/ more details are needed, please visit https://sparta.github.io/doc/Section_start.html for more guidance.
 
 ## Running the simulation
 1. Create a folder (henceforth ```nozzle``` in this document) within ```sparta/sparta-{Version date}```.
